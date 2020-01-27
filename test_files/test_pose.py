@@ -7,42 +7,49 @@ import pytest
 USE_MOCKS = True
 
 
+class Dobot_Mock:
+    def __init__(self):
+        self.x_pos = None
+        self.y_pos = None
+        self.z_pos = None
+        self.r_pos = None
+        self.j1_pos = None
+        self.j2_pos = None
+        self.j3_pos = None
+        self.j4_pos = None
+        self.wait_mock = False
+
+        self.arm = Mock()
+        self.arm.move_to.side_effect = self.mock_move_to
+        self.arm.pose.side_effect = self.get_mock_arm_position
+
+    def mock_move_to(self, x, y, z, r, wait=False):
+        print("Inside mock_move_to")
+        self.x_pos = x
+        self.y_pos = y
+        self.z_pos = z
+        self.r_pos = r
+        self.j1_pos = 0
+        self.j2_pos = 0
+        self.j3_pos = 0
+        self.j4_pos = 0
+        self.wait_mock = wait
+
+    def get_mock_arm_position(self):
+        print("Inside get_mock_arm_position")
+        return self.x_pos, self.y_pos, self.z_pos, self.r_pos, self.j1_pos, self.j2_pos, self.j3_pos, self.j4_pos
+
+    def get_arm(self):
+        return self.arm
+
+
 class TestPose:
     arm = None
-    x_pos = None
-    y_pos = None
-    z_pos = None
-    r_pos = None
-    j1_pos = None
-    j2_pos = None
-    j3_pos = None
-    j4_pos = None
-    wait_mock = False
-
-    @classmethod
-    def mock_move_to(cls, x, y, z, r, wait=False):
-        print("Inside mock_move_to")
-        cls.x_pos = x
-        cls.y_pos = y
-        cls.z_pos = z
-        cls.r_pos = r
-        cls.j1_pos = 0
-        cls.j2_pos = 0
-        cls.j3_pos = 0
-        cls.j4_pos = 0
-        cls.wait_mock = wait
-
-    @classmethod
-    def get_mock_arm_position(cls):
-        print("Inside get_mock_arm_position")
-        return cls.x_pos, cls.y_pos, cls.z_pos, cls.r_pos, cls.j1_pos, cls.j2_pos, cls.j3_pos, cls.j4_pos
 
     @classmethod
     def setup_class(cls):
         if USE_MOCKS:
-            cls.arm = Mock()
-            cls.arm.move_to.side_effect = cls.mock_move_to
-            cls.arm.pose.side_effect = cls.get_mock_arm_position
+            cls.arm = Dobot_Mock().get_arm()
         else:
             try:
                 port = list_ports.comports()[0].device
